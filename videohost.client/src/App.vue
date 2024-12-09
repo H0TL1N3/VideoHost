@@ -1,47 +1,25 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+    <NavBar></NavBar>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+    <div class="container-fluid body-content m-4">
+      <router-view></router-view>
     </div>
-  </header>
 
-  <main>
-    <TheWelcome />
-  </main>
+    <footer class="py-3 fixed-bottom bg-light">
+      <div class="container-fluid">
+        <p class="text-muted">&copy; VideoHost Qualification Project - 2024, ik22076</p>
+      </div>    
+    </footer>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
+<script setup>
+  import { useHead } from '@unhead/vue'
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+  import { DEFAULT_TITLE } from '@/assets/const.js'
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
+  import NavBar from './components/common/navbar.vue'
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
+  useHead({
+    title: DEFAULT_TITLE
+  })
+</script>
