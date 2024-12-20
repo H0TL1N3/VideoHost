@@ -1,10 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+
 namespace VideoHost.Server.Data
 {
     using Models;
 
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -15,8 +18,6 @@ namespace VideoHost.Server.Data
         public DbSet<Subscription> Subscriptions { get; set; }
 
         public DbSet<Tag> Tags { get; set; }
-
-        public DbSet<User> Users { get; set; }
 
         public DbSet<Video> Videos { get; set; }
 

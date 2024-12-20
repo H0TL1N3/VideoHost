@@ -10,6 +10,6 @@
   import { DEFAULT_TITLE } from '@/assets/const.js'
 
   useHead({
-    title: "Search | " + DEFAULT_TITLE
+    title: 'Search | ' + DEFAULT_TITLE
   })
 </script>

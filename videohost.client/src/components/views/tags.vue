@@ -10,6 +10,6 @@
   import { DEFAULT_TITLE } from '@/assets/const.js'
 
   useHead({
-    title: "Tags | " + DEFAULT_TITLE
+    title: 'Tags | ' + DEFAULT_TITLE
   })
 </script>
