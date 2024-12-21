@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -36,7 +35,7 @@ namespace VideoHost.Server.Controllers
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
-                return BadRequest(new { message = "This user does not exist." });
+                return NotFound(new { message = "This user does not exist." });
 
             return Ok(new
             {
@@ -76,7 +75,7 @@ namespace VideoHost.Server.Controllers
 
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
-                return BadRequest(new { message = "This user does not exist." });
+                return NotFound(new { message = "This user does not exist." });
 
             var result = await _signInManager.PasswordSignInAsync(request.Email, request.Password, true, false);
             if (!result.Succeeded)
@@ -119,5 +118,19 @@ namespace VideoHost.Server.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+    }
+
+    public class LoginRequest
+    {
+        public required string Email { get; set; }
+        public required string Password { get; set; }
+    }
+
+    public class RegisterRequest
+    {
+        public required string Username { get; set; }
+        public required string Email { get; set; }
+        public required string Password { get; set; }
+        public required string ConfirmPassword { get; set; }
     }
 }

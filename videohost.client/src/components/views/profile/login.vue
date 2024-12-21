@@ -12,15 +12,18 @@
       <input v-model="password" type="password" placeholder="Password" class="form-control" :class="{ 'is-invalid': errors.password }" />
       <div v-if="errors.password" class="invalid-feedback">{{ errors.password }}</div>
     </div>
+
     <button type="submit" class="btn btn-primary">Login</button>
+
   </form>
 </template>
 
 <script setup>
-  import { useHead } from '@unhead/vue'
+  import { useHead } from '@unhead/vue';
   import * as yup from 'yup';
   import { useField, useForm } from 'vee-validate';
   import { useToast } from 'vue-toast-notification';
+  import { useRouter } from 'vue-router';
 
   import { DEFAULT_TITLE } from '@/assets/const.js'
 
@@ -49,7 +52,7 @@
   const { value: password } = useField('password');
 
   const toast = useToast();
-
+  const router = useRouter();
   const userStore = useUserStore();
 
   const onSubmit = async () => {
@@ -69,6 +72,8 @@
       const response = await userStore.login(formData);
 
       toast.success(response.message);
+
+      router.push({ name: 'Home' });
     } catch (error) {
       let errorMessage = error.response?.data?.message;
 

@@ -11,12 +11,19 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
 
+  // Redirect to the login page if not authenticated
   if (to.meta.requiresAuth && !userStore.isAuthenticated) {
-    // Redirect to the login page if not authenticated
     next({ name: 'Login', query: { redirect: to.fullPath } });
-  } else {
-    next();
+    return;
   }
+
+  // Let the app access the static file
+  if (to.path.startsWith('/api/uploads')) {   
+    window.location.href = to.fullPath;
+    return;
+  }
+
+  next();
 });
 
 export default router;

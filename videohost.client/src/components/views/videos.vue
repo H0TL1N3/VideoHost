@@ -10,6 +10,6 @@
   import { DEFAULT_TITLE } from '@/assets/const.js'
 
   useHead({
-    title: 'Video | ' + DEFAULT_TITLE
+    title: 'Videos | ' + DEFAULT_TITLE
   })
 </script>

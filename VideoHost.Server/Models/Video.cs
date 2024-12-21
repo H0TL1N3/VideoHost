@@ -6,6 +6,10 @@
 
         public required string Name { get; set; }
 
+        public required string UploadPath { get; set; }
+
+        public required string ThumbnailPath { get; set; }
+
         public DateTime UploadDate { get; set; } = DateTime.UtcNow;
 
         public string? Description { get; set; }

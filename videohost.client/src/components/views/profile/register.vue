@@ -26,11 +26,12 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Register</button>
+
   </form>
 </template>
 
 <script setup>
-  import { useHead } from '@unhead/vue'
+  import { useHead } from '@unhead/vue';
   import * as yup from 'yup';
   import { useField, useForm } from 'vee-validate';
   import { useToast } from 'vue-toast-notification';
@@ -69,7 +70,6 @@
   const { value: confirmPassword } = useField('confirmPassword');
 
   const toast = useToast();
-
   const userStore = useUserStore();
 
   const onSubmit = async () => {

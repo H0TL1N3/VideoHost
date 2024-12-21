@@ -24,8 +24,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.11" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Xabe.FFmpeg" Version="5.2.6" />
   </ItemGroup>
 
   <ItemGroup>

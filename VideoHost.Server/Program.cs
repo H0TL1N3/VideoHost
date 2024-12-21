@@ -2,11 +2,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 using VideoHost.Server.Data;
 using VideoHost.Server.Models;
 
 using System.Text;
+
+using Xabe.FFmpeg;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,7 +56,11 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
-}); ;
+});
+
+// Adding FFmpeg to handle thumbnail creation
+var ffmpegPath = builder.Configuration["Paths:FFmpeg"];
+FFmpeg.SetExecutablesPath(ffmpegPath);
 
 var app = builder.Build();
 
@@ -66,6 +73,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Adding static files so that videos can be accessed in the front-end of the app.
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
+    RequestPath = "/api/uploads"
+});
 
 app.UseHttpsRedirection();
 

@@ -49,6 +49,6 @@
   const handleLogout = async () => {
     await userStore.logout();
 
-    router.push('/');
+    router.push({ name: 'Home' });
   };
 </script>
