@@ -33,13 +33,13 @@ namespace VideoHost.Server.Data
             modelBuilder.Entity<Subscription>()
                 .HasOne(s => s.Subscriber)
                 .WithMany(u => u.Subscriptions)
-                .HasForeignKey(s => s.SubscriberID)
+                .HasForeignKey(s => s.SubscriberId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Subscription>()
                 .HasOne(s => s.SubscribedTo)
                 .WithMany(u => u.Subscribers)
-                .HasForeignKey(s => s.SubscribedToID)
+                .HasForeignKey(s => s.SubscribedToId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Video mapping to users - includes cascade delete

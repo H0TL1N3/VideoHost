@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-  import { ref, defineEmits } from 'vue';
+  import { ref } from 'vue';
 
   import { useField, useForm } from 'vee-validate';
   import { useToast } from 'vue-toast-notification';

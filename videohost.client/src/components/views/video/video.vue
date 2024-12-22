@@ -4,16 +4,19 @@
     <div v-else class="w-75">
       <h1>{{ video.name }}</h1>
       <div class="d-flex justify-content-center mb-4">
-        <video controls :src="videoPath" class="object-fit-contain mt-3"></video>
+        <video controls :src="videoPath" class="object-fit-contain mt-3" @play="incrementViewCount"></video>
       </div>
       <div class="card container p-3 mb-3">
+
         <div class="row">
+
           <div class="col">
             <p><strong>Description:</strong> {{ video.description || "No description available." }}</p>
             <p><strong>Uploaded by:</strong> {{ video.user.displayName }}</p>
             <p><strong>Uploaded on:</strong> {{ new Date(video.uploadDate).toLocaleDateString() }}</p>
             <p><strong>Views:</strong> {{ video.viewCount }}</p>
           </div>
+
           <div v-if="userStore.isAuthenticated && video.user.id === userStore.user.id" class="col">
             <div class="float-end">
               <button @click="goToEditPage" class="btn btn-primary me-2">
@@ -24,7 +27,20 @@
               </button>
             </div>       
           </div>
+
         </div>
+
+        <div v-if="video.tags.length">
+          <strong>Video Tags: </strong>
+          <span v-for="tag in video.tags" :key="tag.id">
+            <span v-if="video.tags[video.tags.length-1] !== tag">{{ tag.name }}, </span>
+            <span v-else>{{ tag.name }}</span>
+          </span>
+        </div>
+        <div v-else>
+          <strong>Video Tags: </strong>This video has no tags attached to it.
+        </div>
+
       </div>
       <comment-section :video-id="video.id" :owner-id="video.user.id"></comment-section>
     </div>
@@ -46,6 +62,7 @@
 
   const video = ref(null);
   const loading = ref(true);
+  const alreadyViewed = ref(false);
 
   const userStore = useUserStore();
   const toast = useToast();
@@ -87,7 +104,7 @@
 
   onMounted(async () => {
     try {
-      const response = await axios.get(`/api/Video/get?videoId=${videoId}`);
+      const response = await axios.get(`/api/Video/get?id=${videoId}`);
 
       video.value = response.data;
     } catch (error) {
@@ -98,4 +115,20 @@
       loading.value = false;
     }
   });
+
+  const incrementViewCount = async () => {
+    if (alreadyViewed.value)
+      return;
+
+    try {
+      await axios.post('/api/Video/increment', {id: video.value.id});
+
+      video.value.viewCount += 1;
+      alreadyViewed.value = true;
+    } catch (error) {
+      let errorMessage = error.response?.data?.message;
+
+      toast.error(errorMessage ?? 'An error occurred while incrementing the video\'s view count.');
+    }     
+  }
 </script>

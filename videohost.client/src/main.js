@@ -1,18 +1,19 @@
 // Style importing
-import './assets/main.css'
-import 'bootstrap/dist/css/bootstrap.css'
+import './assets/main.css';
+import 'bootstrap/dist/css/bootstrap.css';
 import 'vue-toast-notification/dist/theme-bootstrap.css';
+import 'vue-multiselect/dist/vue-multiselect.min.css';
 
 // Import app
-import { createApp } from 'vue'
-import App from './App.vue'
+import { createApp } from 'vue';
+import App from './App.vue';
 
 // Unhead for managing meta info about the page
-import { createHead } from '@unhead/vue'
+import { createHead } from '@unhead/vue';
 // Pinia for retaining user store
-import { createPinia } from 'pinia'
+import { createPinia } from 'pinia';
 // Vue Router for enabling SPA functionality
-import router from './router/router.js'
+import router from './router/router.js';
 // Vue Toast Notification for toasts
 import ToastPlugin from 'vue-toast-notification';
 

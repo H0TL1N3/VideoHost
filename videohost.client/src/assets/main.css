@@ -1,1 +1,4 @@
-/* Left blank for future possible styling. */
+.video-preview {
+    height: 20rem;
+    object-fit: cover;
+}

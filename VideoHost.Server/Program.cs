@@ -64,6 +64,28 @@ FFmpeg.SetExecutablesPath(ffmpegPath);
 
 var app = builder.Build();
 
+// Create and seed the database.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Get the DbContext
+        var dbContext = services.GetRequiredService<ApplicationDbContext>();
+
+        // Apply migrations
+        dbContext.Database.Migrate();
+
+        // Seed the database
+        await DatabaseSeeder.Seed(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while applying migrations or seeding the database.");
+    }
+}
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 

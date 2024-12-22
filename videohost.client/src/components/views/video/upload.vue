@@ -1,35 +1,54 @@
 <template>
   <div>
-    <form @submit.prevent="onSubmit">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h3>Upload a new Video</h3>
+          <form @submit.prevent="onSubmit">
 
-      <div class="mb-3 w-25">
-        <label for="name" class="form-label">Video Name</label>
-        <input v-model="name" type="text" placeholder="Enter video name" class="form-control" :class="{ 'is-invalid': errors.name }" />
-        <div v-if="errors.name" class="invalid-feedback">{{ errors.name }}</div>
+            <div class="mb-3">
+              <label for="name" class="form-label">Video Name</label>
+              <input v-model="name" type="text" placeholder="Enter video name" class="form-control" :class="{ 'is-invalid': errors.name }" />
+              <div v-if="errors.name" class="invalid-feedback">{{ errors.name }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea v-model="description" type="text" placeholder="Enter a description (optional)" class="form-control" :class="{ 'is-invalid': errors.description }" />
+              <div v-if="errors.description" class="invalid-feedback">{{ errors.description }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="videoFile" class="form-label">Upload Video</label>
+              <input type="file" class="form-control" @change="handleFileChange" ref="fileInput" />
+              <small class="text-muted">Maximum size: 500MB</small>
+            </div>
+
+            <div class="mb-3">
+              <select-tags v-model="selectedTags" ref="tagSelector" />
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3" :disabled="isUploading">
+              {{ isUploading ? 'Uploading...' : 'Upload' }}
+            </button>
+
+          </form>
+        </div>
+
+        <div class="col">
+          <create-tag-form @tag-created="handleTagCreated" />
+        </div>
+
       </div>
-
-      <div class="mb-3 w-25">
-        <label for="description" class="form-label">Description</label>
-        <textarea v-model="description" type="text" placeholder="Enter a description (optional)" class="form-control" :class="{ 'is-invalid': errors.description }"/>
-        <div v-if="errors.description" class="invalid-feedback">{{ errors.description }}</div>
-      </div>
-
-      <div class="mb-3 w-25">
-        <label for="videoFile" class="form-label">Upload Video</label>
-        <input type="file" class="form-control" @change="handleFileChange" ref="fileInput" />
-        <small class="text-muted">Maximum size: 500MB</small>
-      </div>
-
-      <button type="submit" class="btn btn-primary mt-3" :disabled="isUploading">
-        {{ isUploading ? 'Uploading...' : 'Upload' }}
-      </button>
-
-    </form>
+    </div>
   </div>
 </template>
 
 <script setup>
   import { ref } from 'vue';
+
+  import CreateTagForm from '@/components/common/tag/create-form.vue';
+  import SelectTags from '@/components/common/tag/select.vue';
 
   import { useHead } from '@unhead/vue';
   import { useRouter } from 'vue-router';
@@ -66,6 +85,13 @@
 
   const { value: name } = useField('name');
   const { value: description } = useField('description');
+
+  const selectedTags = ref([]);
+  const tagSelector = ref(null);
+
+  const handleTagCreated = () => {
+    tagSelector.value.loadTags(); 
+  };
 
   const fileInput = ref(null);
 
@@ -113,7 +139,7 @@
       name: name.value,
       description: description.value,
       videoFile: videoFile.value,
-      userId: userStore.user.id
+      userId: userStore.user.id, 
     };
 
     try {
@@ -126,6 +152,15 @@
       });
 
       toast.success(response.data.message);
+
+      if (selectedTags.value.length > 0) {
+        const tagFormData = {
+          videoId: response.data.videoId,
+          tagIds: selectedTags.value
+        }
+
+        await axios.post('/api/Tag/attach', tagFormData);
+      }
 
       isUploading.value = false;
 

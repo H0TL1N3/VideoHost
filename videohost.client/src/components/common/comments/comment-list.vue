@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-  import { ref, defineExpose } from 'vue';
+  import { ref } from 'vue';
 
   import { useToast } from 'vue-toast-notification';
   import axios from 'axios';
@@ -61,7 +61,7 @@
 
   const loadComments = async () => {
     try {
-      const response = await axios.get("/api/Comment/get", {
+      const response = await axios.get('/api/Comment/get', {
         params: { videoId: props.videoId, skip: skip.value, take },
       });
 

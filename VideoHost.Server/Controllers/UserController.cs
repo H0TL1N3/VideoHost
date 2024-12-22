@@ -15,12 +15,14 @@ namespace VideoHost.Server.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
 
-        public UserController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
+        public UserController(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, SignInManager<User> signInManager, IConfiguration configuration)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
             _configuration = configuration;
         }
@@ -64,6 +66,8 @@ namespace VideoHost.Server.Controllers
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
+            await _userManager.AddToRoleAsync(user, "User");
+
             return Ok(new { message = "Registration successful!" });
         }
 
@@ -81,10 +85,20 @@ namespace VideoHost.Server.Controllers
             if (!result.Succeeded)
                 return Unauthorized(new { message = "The password is incorrect." });
 
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault();
+
             return Ok(new
             {
                 token = GenerateJwtToken(user),
-                user,
+                user = new
+                {
+                    user.Id,
+                    user.DisplayName,
+                    user.Email,
+                    user.RegistrationDate,
+                    role
+                },
                 message = "Login successful!"
             });
         }
