@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,11 +57,12 @@ namespace VideoHost.Server.Controllers
             });
         }
 
-        [HttpGet("get-videos")]
-        public async Task<IActionResult> GetVideos(
+        [HttpGet("get-many")]
+        public async Task<IActionResult> GetMany(
             string? searchTerm = null,
-            int[]? tagIds = null,
+            string? tagIds = null,
             int? userId = null,
+            int? subscriberId = null,
             string? orderBy = null,
             int skip = 0,
             int take = 8)
@@ -70,11 +72,15 @@ namespace VideoHost.Server.Controllers
                 .Include(v => v.VideoTags)!
                 .ThenInclude(vt => vt.Tag);
 
-            // Filter by user subscriptions if userId is provided
+            // Filter by user if userId is provided
             if (userId.HasValue)
+                query = query.Where(v => v.UserId == userId);
+
+            // Filter by user subscriptions if subscriberId is provided
+            if (subscriberId.HasValue)
             {
                 var subscribedUserIds = await _dbContext.Subscriptions
-                    .Where(us => us.SubscriberId == userId.Value)
+                    .Where(us => us.SubscriberId == subscriberId.Value)
                     .Select(us => us.SubscribedToId)
                     .ToListAsync();
 
@@ -82,21 +88,23 @@ namespace VideoHost.Server.Controllers
             }
 
             // Filter by tags if tagIds are provided
-            if (tagIds != null && tagIds.Length > 0)
+            IEnumerable<int>? tagIdList = null;
+            if (!string.IsNullOrEmpty(tagIds))
             {
-                query = query.Where(v => v.VideoTags!.Any(vt => tagIds.Contains(vt.TagId)));
-            }
+                tagIdList = System.Text.Json.JsonSerializer.Deserialize<List<int>>(tagIds);
+                query = query.Where(v =>
+                    tagIdList!.All(tagId => v.VideoTags!.Any(vt => vt.TagId == tagId))
+                );
+            }                
 
             // Filter by search term if it's provided
             if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
                 query = query.Where(v => v.Name.Contains(searchTerm));
-            }
 
             query = orderBy switch
             {
                 "views" => query.OrderByDescending(v => v.ViewCount),
-                _ => query.OrderByDescending(v => v.UploadDate), // Default sorting by UploadDate
+                _ => query.OrderByDescending(v => v.UploadDate), // Default ordering by UploadDate
             };
 
             var videos = await query.Skip(skip).Take(take).Select(v => new
@@ -107,33 +115,24 @@ namespace VideoHost.Server.Controllers
                 v.UploadDate,
                 v.Description,
                 v.ViewCount,
-                User = new { v.User.DisplayName }
+                User = new { 
+                    v.User.Id,
+                    v.User.DisplayName
+                }
             }).ToListAsync();
-
-            if (!videos.Any())
-                return NotFound(new { message = "No videos found." });
 
             return Ok(videos);
         }
 
-        [HttpPost("increment")]
-        public async Task<IActionResult> Increment([FromBody] VideoIncrementRequest request)
-        {
-            var video = await _dbContext.Videos.FirstOrDefaultAsync(v => v.Id == request.Id);
-
-            if (video == null)
-                return NotFound(new { message = "This video does not exist." });
-
-            video.ViewCount++;
-
-            await _dbContext.SaveChangesAsync();
-
-            return Ok();
-        }
-
+        [Authorize]
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] VideoUploadRequest request)
         {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return NotFound(new { message = "This user does not exist." });
+
             if (request.VideoFile == null || request.VideoFile.Length == 0)
                 return BadRequest(new { message = "No video file provided." });
 
@@ -143,14 +142,10 @@ namespace VideoHost.Server.Controllers
             if (request.VideoFile.ContentType != "video/mp4" && Path.GetExtension(request.VideoFile.FileName)?.ToLower() != ".mp4")
                 return BadRequest(new { message = "Only MP4 video files are allowed." });
 
-            var user = await _userManager.FindByIdAsync(request.UserId.ToString());
-            if (user == null)
-                return NotFound(new { message = "User not found." });   
-
             try
             {
                 // Save video to user-specific folder
-                string uploadDir = Path.Combine("uploads", request.UserId.ToString());
+                string uploadDir = Path.Combine("uploads", user.Id.ToString());
                 Directory.CreateDirectory(uploadDir);
                 string videoFileName = $"{Path.GetRandomFileName()}.mp4";
                 string videoPath = Path.Combine(uploadDir, videoFileName);
@@ -173,7 +168,7 @@ namespace VideoHost.Server.Controllers
                     UploadPath = videoPath,
                     ThumbnailPath = thumbnailPath,
                     Description = request.Description ?? String.Empty,
-                    UserId = request.UserId,
+                    UserId = user.Id,
                     User = user,
                     UploadDate = DateTime.UtcNow
                 };
@@ -192,6 +187,22 @@ namespace VideoHost.Server.Controllers
             }
         }
 
+        [HttpPost("increment")]
+        public async Task<IActionResult> Increment([FromBody] VideoIncrementRequest request)
+        {
+            var video = await _dbContext.Videos.FirstOrDefaultAsync(v => v.Id == request.Id);
+
+            if (video == null)
+                return NotFound(new { message = "This video does not exist." });
+
+            video.ViewCount++;
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] VideoUpdateRequest request)
         {
@@ -208,34 +219,62 @@ namespace VideoHost.Server.Controllers
             return Ok(new { message = "The video has been updated successfully!" });
         }
 
+        [Authorize]
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete(int id)
         {
+            var video = await _dbContext.Videos.FindAsync(id);
+
+            if (video == null)
+                return NotFound(new { message = "Video not found." });
+
+            DeleteVideoFile(video);
+
+            _dbContext.Videos.Remove(video);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { message = "Video deleted successfully." });
+        }
+
+        [Authorize]
+        [HttpDelete("delete-user-videos")]
+        public async Task<IActionResult> DeleteUserVideos()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return NotFound(new { message = "This user does not exist." });
+
+            var videos = _dbContext.Videos.Where(v => v.UserId == user.Id);
+
+            foreach (Video video in videos)
+                DeleteVideoFile(video);
+
+            _dbContext.Videos.RemoveRange(videos);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { message = "All videos of the user with the Id " + user.Id + " have been deleted." });
+        }
+
+        private void DeleteVideoFile(Video video)
+        {
+            var videoPath = video.UploadPath;
+            var thumbnailPath = video.ThumbnailPath;
+
             try
             {
-                var video = await _dbContext.Videos.FindAsync(id);
-
-                if (video == null)
-                    return NotFound(new { message = "Video not found." });
-
-                var videoPath = video.UploadPath;
-                var thumbnailPath = video.ThumbnailPath;
-
                 if (System.IO.File.Exists(videoPath))
                     System.IO.File.Delete(videoPath);
 
                 if (System.IO.File.Exists(thumbnailPath))
                     System.IO.File.Delete(thumbnailPath);
 
-                _dbContext.Videos.Remove(video);
+                return;
 
-                await _dbContext.SaveChangesAsync();
-
-                return Ok(new { message = "Video deleted successfully." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while deleting the video.", error = ex.Message });
+                throw new InvalidOperationException("An error occurred while deleting the video.", ex);
             }
         }
     }
@@ -249,7 +288,6 @@ namespace VideoHost.Server.Controllers
     {
         public required string Name { get; set; }
         public string? Description { get; set; }
-        public required int UserId { get; set; }
         public required IFormFile VideoFile { get; set; }
     }
 

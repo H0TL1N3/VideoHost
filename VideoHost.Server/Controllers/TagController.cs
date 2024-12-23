@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using VideoHost.Server.Data;
@@ -10,17 +11,17 @@ namespace VideoHost.Server.Controllers
     [Route("api/[controller]")]
     public class TagController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _dbContext;
 
         public TagController(ApplicationDbContext context)
         {
-            _context = context;
+            _dbContext = context;
         }
 
         [HttpGet("get")]
         public async Task<IActionResult> Get()
         {
-            var tags = await _context.Tags.ToListAsync();
+            var tags = await _dbContext.Tags.ToListAsync();
 
             if (tags == null || tags.Count == 0)
                 return NotFound(new { message = "No tags exist in the database." });
@@ -28,13 +29,14 @@ namespace VideoHost.Server.Controllers
             return Ok(tags);
         }
 
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] TagAddRequest request)
+        [Authorize]
+        [HttpPost("add")]
+        public async Task<IActionResult> Add([FromBody] TagAddRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Name))
                 return BadRequest(new { message = "Tag name is required." });
 
-            if (await _context.Tags.AnyAsync(t => t.Name == request.Name))
+            if (await _dbContext.Tags.AnyAsync(t => t.Name == request.Name))
                 return Conflict(new { message = "Tag already exists." });
 
             var tag = new Tag
@@ -43,24 +45,25 @@ namespace VideoHost.Server.Controllers
                 Description = request.Description
             };
 
-            _context.Tags.Add(tag);
-            await _context.SaveChangesAsync();
+            _dbContext.Tags.Add(tag);
+            await _dbContext.SaveChangesAsync();
 
             return Ok(new { message = "Tag created successfully!" });
         }
 
+        [Authorize]
         [HttpPost("attach")]
         public async Task<IActionResult> Attach([FromBody] TagAttachRequest request)
         {
-            var video = await _context.Videos.Include(v => v.VideoTags).FirstOrDefaultAsync(v => v.Id == request.videoId);
+            var video = await _dbContext.Videos.Include(v => v.VideoTags).FirstOrDefaultAsync(v => v.Id == request.videoId);
             if (video == null)
                 return NotFound(new { message = "Video not found." });
 
-            _context.VideoTags.RemoveRange(video.VideoTags!);
+            _dbContext.VideoTags.RemoveRange(video.VideoTags!);
 
             if (request.TagIds != null && request.TagIds.Any())
             {
-                var tags = await _context.Tags.Where(t => request.TagIds.Contains(t.Id)).ToListAsync();
+                var tags = await _dbContext.Tags.Where(t => request.TagIds.Contains(t.Id)).ToListAsync();
 
                 foreach (var tag in tags)
                 {
@@ -74,7 +77,7 @@ namespace VideoHost.Server.Controllers
                 }
             }
 
-            await _context.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
             return Ok(new { message = "Tags attached successfully." });
         }
     }

@@ -43,8 +43,8 @@
 <script setup>
   import { ref, onMounted, watch } from 'vue';
 
-  import CreateTagForm from '@/components/common/tag/create-form.vue';
-  import SelectTags from '@/components/common/tag/select.vue';
+  import CreateTagForm from '@/components/common/forms/tag/create.vue';
+  import SelectTags from '@/components/common/forms/tag/select.vue';
 
   import { useHead } from '@unhead/vue';
   import { useRouter, useRoute } from 'vue-router';
@@ -70,7 +70,7 @@
 
   useHead({ title: pageTitle })
 
-  watch(video, async (newVideo) => {
+  watch(video, (newVideo) => {
     pageTitle.value = 'Edit ' + newVideo.name + ' | ' + DEFAULT_TITLE;
   })
 
@@ -116,7 +116,7 @@
   const { value: name } = useField('name');
   const { value: description } = useField('description');
 
-  const onSubmit = async (values) => {
+  const onSubmit = async () => {
     const formCheck = await validate();
 
     if (!formCheck.valid) {

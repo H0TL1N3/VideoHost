@@ -57,7 +57,7 @@
     };
 
     try {
-      const response = await axios.post('/api/Tag/create', formData);
+      const response = await axios.post('/api/Tag/add', formData);
 
       emit('tag-created');
 

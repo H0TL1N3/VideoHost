@@ -12,6 +12,7 @@ import App from './App.vue';
 import { createHead } from '@unhead/vue';
 // Pinia for retaining user store
 import { createPinia } from 'pinia';
+import { useUserStore } from './stores/user';
 // Vue Router for enabling SPA functionality
 import router from './router/router.js';
 // Vue Toast Notification for toasts
@@ -28,7 +29,11 @@ const pinia = createPinia()
 app.use(head)
 app.use(pinia)
 app.use(router)
-app.use(ToastPlugin);
+app.use(ToastPlugin)
+
+// Reinitialize userStore
+const userStore = useUserStore();
+userStore.initializeStore()
 
 // Mount app to HTML
 app.mount('#app')

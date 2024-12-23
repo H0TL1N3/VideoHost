@@ -8,6 +8,13 @@ export const useUserStore = defineStore('user', {
     isAuthenticated: !!localStorage.getItem('token'),
   }),
   actions: {
+    initializeStore() {
+      const token = localStorage.getItem('token');
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+    },
+
     async login(credentials) {
       try {
         const response = await axios.post('/api/User/login', credentials);

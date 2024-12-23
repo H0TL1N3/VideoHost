@@ -45,7 +45,7 @@
   })
 
   const schema = yup.object({
-    username: yup.string().required('Username is required'),
+    username: yup.string().required('Username is required').max(255, 'Name cannot exceed 255 characters.'),
     email: yup.string().required('Email is required').email('Email must be valid'),
     password: yup
       .string()
@@ -83,14 +83,15 @@
     const formData = {
       username: username.value,
       email: email.value,
-      password: password.value,
-      confirmPassword: confirmPassword.value,
+      password: password.value
     };
 
     try {
       const response = await userStore.register(formData);
 
       toast.success(response.message);
+
+      router.push({ name: 'Login' }); 
     } catch (error) {
       let errorMessage = '';
 

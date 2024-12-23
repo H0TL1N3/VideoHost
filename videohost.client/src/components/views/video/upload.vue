@@ -47,8 +47,8 @@
 <script setup>
   import { ref } from 'vue';
 
-  import CreateTagForm from '@/components/common/tag/create-form.vue';
-  import SelectTags from '@/components/common/tag/select.vue';
+  import CreateTagForm from '@/components/common/forms/tag/create.vue';
+  import SelectTags from '@/components/common/forms/tag/select.vue';
 
   import { useHead } from '@unhead/vue';
   import { useRouter } from 'vue-router';
@@ -90,7 +90,7 @@
   const tagSelector = ref(null);
 
   const handleTagCreated = () => {
-    tagSelector.value.loadTags(); 
+    tagSelector.value.loadTags();
   };
 
   const fileInput = ref(null);
@@ -122,7 +122,7 @@
     }
   };
 
-  const onSubmit = async (values) => {
+  const onSubmit = async () => {
     const formCheck = await validate();
 
     if (!formCheck.valid) {
@@ -138,8 +138,7 @@
     const formData = {
       name: name.value,
       description: description.value,
-      videoFile: videoFile.value,
-      userId: userStore.user.id, 
+      videoFile: videoFile.value
     };
 
     try {

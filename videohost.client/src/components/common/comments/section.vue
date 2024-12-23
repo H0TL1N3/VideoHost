@@ -8,8 +8,8 @@
 <script setup>
   import { useTemplateRef } from 'vue';
 
-  import CommentInput from './comment-input.vue';
-  import CommentList from './comment-list.vue';
+  import CommentInput from './input.vue';
+  import CommentList from './list.vue';
 
   const props = defineProps({
     videoId: {

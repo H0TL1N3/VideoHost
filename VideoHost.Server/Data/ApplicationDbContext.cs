@@ -42,12 +42,13 @@ namespace VideoHost.Server.Data
                 .HasForeignKey(s => s.SubscribedToId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Video mapping to users - includes cascade delete
+            // Video mapping to users - does not include cascade delete due to the need to delete files,
+            // Deleting Videos will be handled by the controller
             modelBuilder.Entity<Video>()
                 .HasOne(v => v.User)
                 .WithMany(u => u.Videos)
                 .HasForeignKey(v => v.UserId)
-                .OnDelete(DeleteBehavior.Cascade); 
+                .OnDelete(DeleteBehavior.NoAction); 
 
             // Comment mapping to users - does not include cascade delete due to EF Core limitations -
             // deletion of comments will be handled when a user is deleted

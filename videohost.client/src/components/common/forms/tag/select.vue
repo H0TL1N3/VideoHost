@@ -1,14 +1,16 @@
 <template>
   <div>
-    <label for="tagSelect" class="mb-2">Select Tags</label>
+    <label v-if="showLabel" for="tagSelect" class="mb-2">Select Tags</label>
     <multiselect id="tagSelect"
                  v-model="selectedTagObjects"
                  :options="tags"
                  :multiple="true"
                  :close-on-select="false"
+                 :clear-on-select="false"
                  :track-by="'id'"
                  :label="'name'"
-                 @update="updateTagIds" />
+                 placeholder="Select tags"
+                 @update:modelValue="updateTagIds" />
   </div>
 </template>
 
@@ -25,6 +27,14 @@
   const selectedTagObjects = ref([]); 
 
   const toast = useToast();
+
+  const props = defineProps({
+    showLabel: {
+      type: Boolean,
+      required: false,
+      default: true
+    }
+  });
 
   onMounted(async () => {
     await loadTags();

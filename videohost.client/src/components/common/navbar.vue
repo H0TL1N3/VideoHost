@@ -7,10 +7,10 @@
         </li>
       </ul>
       <div v-if="!userStore.isAuthenticated">
-        <router-link to="/login" class="btn btn-primary me-2" role="button">
+        <router-link :to="{ name: 'Login' }" class="btn btn-primary me-2" role="button">
           Login
         </router-link>
-        <router-link to="/register" class="btn btn-secondary" role="button">
+        <router-link :to="{ name: 'Register' }" class="btn btn-secondary" role="button">
           Register
         </router-link>
       </div>
@@ -47,8 +47,8 @@
   })
 
   const handleLogout = async () => {
-    await userStore.logout();
-
     router.push({ name: 'Home' });
+
+    await userStore.logout();
   };
 </script>

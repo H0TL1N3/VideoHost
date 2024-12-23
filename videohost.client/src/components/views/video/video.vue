@@ -12,7 +12,11 @@
 
           <div class="col">
             <p><strong>Description:</strong> {{ video.description || "No description available." }}</p>
-            <p><strong>Uploaded by:</strong> {{ video.user.displayName }}</p>
+            <p><strong>Uploaded by: </strong>
+              <router-link :to="{ name: 'Profile', params: { id: video.user.id } }">
+                {{ video.user.displayName }}
+              </router-link>
+            </p>
             <p><strong>Uploaded on:</strong> {{ new Date(video.uploadDate).toLocaleDateString() }}</p>
             <p><strong>Views:</strong> {{ video.viewCount }}</p>
           </div>
@@ -55,7 +59,7 @@
   import { useToast } from 'vue-toast-notification';
   import axios from 'axios';
 
-  import CommentSection from '@/components/common/comments/comment-section.vue';
+  import CommentSection from '@/components/common/comments/section.vue';
   import { useUserStore } from '@/stores/user';
 
   import { DEFAULT_TITLE } from '@/assets/const.js';
@@ -74,7 +78,7 @@
 
   useHead({ title: pageTitle })
 
-  watch(video, async (newVideo) => {
+  watch(video, (newVideo) => {
     pageTitle.value = newVideo.name + ' | ' + DEFAULT_TITLE;
   })
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,8 +19,63 @@ namespace VideoHost.Server.Controllers
         {
             _dbContext = dbContext;
             _userManager = userManager;
+        }  
+
+        [HttpGet("get")]
+        public async Task<IActionResult> Get(
+            int? videoId = null,
+            int? userId = null,
+            int? subscriberId = null,
+            int skip = 0,
+            int take = 10)
+        {
+            IQueryable<Comment> query = _dbContext.Comments
+                .Include(c => c.User)
+                .Include(c => c.Video);
+
+            // Filter by video if videoId is provided
+            if (videoId.HasValue)
+                query = query.Where(c => c.VideoId == videoId.Value);
+
+            // Filter by user if userId is provided
+            if (userId.HasValue)
+                query = query.Where(c => c.UserId == userId.Value);
+
+            // Filter by subscriptions if subscriberId is provided
+            if (subscriberId.HasValue)
+            {
+                var subscribedUserIds = await _dbContext.Subscriptions
+                    .Where(s => s.SubscriberId == subscriberId.Value)
+                    .Select(s => s.SubscribedToId)
+                    .ToListAsync();
+
+                query = query.Where(c => subscribedUserIds.Contains(c.UserId));
+            }
+
+            // Sort comments by creation date and paginate
+            var comments = await query
+                .OrderBy(c => c.CreationDate)
+                .Skip(skip)
+                .Take(take)
+                .Select(c => new
+                {
+                    c.Id,
+                    c.Content,
+                    c.CreationDate,
+                    UserName = c.User.DisplayName,
+                    c.UserId,
+                    Video = new
+                        {
+                            c.Video.Id,
+                            c.Video.Name
+                        }
+                })
+                .ToListAsync();
+
+            return Ok(comments);
         }
 
+        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> Add([FromBody] CommentAddRequest request)
         {
@@ -50,27 +106,7 @@ namespace VideoHost.Server.Controllers
             return Ok(new { message = "Comment added successfully!" });
         }
 
-        [HttpGet("get")]
-        public async Task<IActionResult> Get([FromQuery] int videoId, [FromQuery] int skip = 0, [FromQuery] int take = 10)
-        {
-            var comments = await _dbContext.Comments
-                .Where(c => c.VideoId == videoId)
-                .OrderBy(c => c.CreationDate)
-                .Skip(skip)
-                .Take(take)
-                .Select(c => new
-                {
-                    c.Id,
-                    c.Content,
-                    c.CreationDate,
-                    UserName = c.User.DisplayName,
-                    c.UserId
-                })
-                .ToListAsync();
-
-            return Ok(comments);
-        }
-
+        [Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] CommentUpdateRequest request)
         {
@@ -85,6 +121,7 @@ namespace VideoHost.Server.Controllers
             return Ok(new { message = "Comment updated successfully!" });
         }
 
+        [Authorize]
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete(int id)
         {

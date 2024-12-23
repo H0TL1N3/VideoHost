@@ -39,7 +39,7 @@
     ownerId: {
       type: Number,
       required: true
-    }
+    }  
   });
 
   const comments = ref([]);
@@ -91,7 +91,12 @@
     const newContent = prompt('Edit your comment:');
 
     if (!newContent) {
-      toast.error('A comment cannot be empty');
+      toast.error('A comment cannot be empty!');
+      return;
+    }
+
+    if (newContent.length > 500) {
+      toast.error('A comment cannot exceed 500 characters!');
       return;
     }
 
