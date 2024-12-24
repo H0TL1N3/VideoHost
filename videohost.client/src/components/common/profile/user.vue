@@ -92,32 +92,33 @@
   })
 
   onMounted(async () => {
-  try {
-    const response = await axios.get(`/api/User/get?id=${props.userId}`);
+    try {
+      const response = await axios.get(`/api/User/get?id=${props.userId}`);
 
-    user.value = response.data;
+      user.value = response.data;
 
-    if (!userStore.isAuthenticated)
-      return;
+      if (!userStore.isAuthenticated)
+        return;
 
-    if (userStore.user.id === user.value.id)
-      return;
+      if (userStore.user.id === user.value.id)
+        return;
 
-    const subscription = await axios.get('/api/Subscription/get', {
-      params: {
-        subscriberId: userStore.user.id,
-        subscribedToId: user.value.id
-      }
-    });
+      const subscription = await axios.get('/api/Subscription/get', {
+        params: {
+          subscriberId: userStore.user.id,
+          subscribedToId: user.value.id
+        }
+      });
 
-    if (subscription.data)
-      subscribed.value = true;
+      if (subscription.data)
+        subscribed.value = true;
 
-  } catch (error) {
-    let errorMessage = error.response?.data?.message;
+    } catch (error) {
+      let errorMessage = error.response?.data?.message;
 
-    toast.error(errorMessage ?? 'An error occurred while loading the subscription data.');
-  }
+      toast.error(errorMessage ?? 'An error occurred while loading the subscription data.');
+    }
+  });
 
   const goToEditPage = () => {
     router.push({ name: 'Edit User', params: { id: props.userId } });
@@ -182,5 +183,4 @@
       }
     }
   }
-  });
 </script>

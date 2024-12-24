@@ -41,8 +41,7 @@ namespace VideoHost.Server.Controllers
 
             var tag = new Tag
             {
-                Name = request.Name,
-                Description = request.Description
+                Name = request.Name
             };
 
             _dbContext.Tags.Add(tag);
@@ -55,7 +54,9 @@ namespace VideoHost.Server.Controllers
         [HttpPost("attach")]
         public async Task<IActionResult> Attach([FromBody] TagAttachRequest request)
         {
-            var video = await _dbContext.Videos.Include(v => v.VideoTags).FirstOrDefaultAsync(v => v.Id == request.videoId);
+            var video = await _dbContext.Videos
+                .Include(v => v.VideoTags)
+                .FirstOrDefaultAsync(v => v.Id == request.videoId);
             if (video == null)
                 return NotFound(new { message = "Video not found." });
 
@@ -85,7 +86,6 @@ namespace VideoHost.Server.Controllers
     public class TagAddRequest
     {
         public required string Name { get; set; }
-        public string? Description { get; set; }
     }
 
     public class TagAttachRequest

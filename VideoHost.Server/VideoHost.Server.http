@@ -1,6 +1,3 @@
 @VideoHost.Server_HostAddress = http://localhost:5032
 
-GET {{VideoHost.Server_HostAddress}}/weatherforecast/
-Accept: application/json
-
 ###

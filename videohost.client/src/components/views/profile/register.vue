@@ -32,8 +32,9 @@
 
 <script setup>
   import { useHead } from '@unhead/vue';
-  import * as yup from 'yup';
+  import { useRouter } from 'vue-router';
   import { useField, useForm } from 'vee-validate';
+  import * as yup from 'yup';
   import { useToast } from 'vue-toast-notification';
 
   import { DEFAULT_TITLE } from '@/assets/const.js'
@@ -70,6 +71,7 @@
   const { value: confirmPassword } = useField('confirmPassword');
 
   const toast = useToast();
+  const router = useRouter();
   const userStore = useUserStore();
 
   const onSubmit = async () => {

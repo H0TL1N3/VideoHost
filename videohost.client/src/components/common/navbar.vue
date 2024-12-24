@@ -39,6 +39,9 @@
         if (!userStore.isAuthenticated && route.meta.requiresAuth)
            return false;
 
+        if (userStore.isAuthenticated && userStore.user.role !== 'Admin' && route.meta.requiresAdmin)
+          return false;
+
         if (route.meta.showInMenu)
            return true;
 

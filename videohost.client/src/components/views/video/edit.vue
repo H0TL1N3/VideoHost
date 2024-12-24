@@ -133,7 +133,8 @@
     try {
       const response = await axios.put('/api/Video/update', formData);
 
-      toast.success(response.data.message);  
+      toast.success(response.data.message);
+
       if (selectedTags.value.length > 0) {
         const tagFormData = {
           videoId: video.value.id,

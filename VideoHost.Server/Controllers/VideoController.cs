@@ -212,7 +212,8 @@ namespace VideoHost.Server.Controllers
                 return NotFound(new { message = "Video not found." });
 
             video.Name = request.Name;
-            video.Description = request.Description;
+            if (!String.IsNullOrWhiteSpace(request.Description))
+                video.Description = request.Description;
 
             await _dbContext.SaveChangesAsync();
 

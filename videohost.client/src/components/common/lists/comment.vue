@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading" class="text-center">Loading...</div>
-  <div v-if="!comments.length" class="text-center">No comments found.</div>
+  <div v-else-if="!comments.length" class="text-center">No comments found.</div>
   <div v-else class="comment-list">
 
     <div v-for="comment in comments" :key="comment.id" class="comment card mb-2">
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue';
+  import { ref, onMounted } from 'vue';
 
   import { useToast } from 'vue-toast-notification';
   import axios from 'axios';
@@ -42,6 +42,8 @@
       required: false
     }
   });
+
+  const loading = ref(true);
 
   const comments = ref([]);
   const skip = ref(0);
@@ -74,5 +76,8 @@
     }
   };
 
-  loadComments();
+  onMounted(async () => {
+    await loadComments();
+    loading.value = false;
+  })
 </script>

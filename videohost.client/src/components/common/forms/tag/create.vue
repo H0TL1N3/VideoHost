@@ -2,16 +2,11 @@
   <div>
     <h3>Create a New Tag</h3>
     <form @submit.prevent="onSubmit">
+
       <div class="mb-3">
         <label for="name" class="form-label">Name</label>
         <input v-model="name" type="text" placeholder="Enter name" class="form-control" :class="{ 'is-invalid': errors.name }" />
         <div v-if="errors.name" class="invalid-feedback">{{ errors.name }}</div>
-      </div>
-
-      <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea v-model="description" placeholder="Enter description (optional)" class="form-control" :class="{ 'is-invalid': errors.description }"></textarea>
-        <div v-if="errors.description" class="invalid-feedback"> {{ errors.description }} </div>
       </div>
 
       <button type="submit" class="btn btn-primary mt-3">Create</button>
@@ -28,8 +23,7 @@
   import axios from 'axios';
 
   const schema = yup.object({
-    name: yup.string().required('Tag name is required.').max(20, 'Tag name cannot exceed 20 characters.'),
-    description: yup.string().max(250, 'Description cannot exceed 250 characters.'),
+    name: yup.string().required('Tag name is required.').max(20, 'Tag name cannot exceed 20 characters.')
   });
 
   const { errors, validate } = useForm({
@@ -52,8 +46,7 @@
     }
 
     const formData = {
-      name: name.value,
-      description: description.value,
+      name: name.value
     };
 
     try {
@@ -64,7 +57,6 @@
       toast.success(response.data.message);
 
       name.value = '';
-      description.value = '';
     } catch (error) {
       let errorMessage = error.response?.data?.message;
 

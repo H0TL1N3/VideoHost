@@ -17,6 +17,12 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
+  // Don't let regular users access the admin apges
+  if (to.meta.requiresAdmin && userStore.isAuthenticated && userStore.user.role != 'Admin') {
+    next({ name: '403 Forbidden' });
+    return;
+  }
+
   // Let the app access the static file
   if (to.path.startsWith('/api/uploads')) {   
     window.location.href = to.fullPath;

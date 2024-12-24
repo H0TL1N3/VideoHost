@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading" class="text-center">Loading...</div>
-  <div v-if="!videos.length" class="text-center">No videos found.</div>
+  <div v-else-if="!videos.length" class="text-center">No videos found.</div>
   <div v-else class="container">
 
     <div class="row mb-3">

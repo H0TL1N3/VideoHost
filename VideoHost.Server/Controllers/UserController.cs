@@ -182,12 +182,16 @@ namespace VideoHost.Server.Controllers
             if (!isPasswordValid)
                 return BadRequest(new { message = "Old password is incorrect." });
 
-            // Update email if provided
+            // Update email and username if provided
             if (!string.IsNullOrWhiteSpace(request.NewEmail))
             {
                 var emailResult = await _userManager.SetEmailAsync(user, request.NewEmail);
                 if (!emailResult.Succeeded)
                     return BadRequest(new { message = "Failed to update email.", errors = emailResult.Errors });
+
+                var usernameResult = await _userManager.SetUserNameAsync(user, request.NewEmail);
+                if (!usernameResult.Succeeded)
+                    return BadRequest(new { message = "Failed to update username.", errors = usernameResult.Errors });
             }
 
             // Update password if provided
