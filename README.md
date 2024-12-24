@@ -22,3 +22,11 @@ In order to make sure that the project will work correctly, please, do the follo
 3. In `VideoHost.Server/appsettings.json`, change `Paths:FFmpeg` to the path where `ffmpeg.exe` can be found - for example, `"C:\\ffmpeg\\bin"`. Please note that the `bin` folder must have all of the `.exe` files related to FFmpeg, not just links to said files.
 
 If you need any more information on how to install FFmpeg, please, consult the [FFmpeg website](https://www.ffmpeg.org/).
+
+## Building and testing
+
+This project was created using [Visual Studio 2022 Community Release](https://visualstudio.microsoft.com/vs/).
+
+Simply launch the solution using the IDE and the project should build without any errors. 
+
+If you wish to test or debug the code, make sure to use Visual Studio's built-in breakpoints, loggers or other available debugging tools.
