@@ -54,7 +54,7 @@ namespace VideoHost.Server.Controllers
 
             // Sort comments by creation date and paginate
             var comments = await query
-                .OrderBy(c => c.CreationDate)
+                .OrderByDescending(c => c.CreationDate)
                 .Skip(skip)
                 .Take(take)
                 .Select(c => new
@@ -79,12 +79,12 @@ namespace VideoHost.Server.Controllers
         [HttpPost("add")]
         public async Task<IActionResult> Add([FromBody] CommentAddRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Content))
-                return BadRequest(new { message = "Content cannot be empty." });
-
-            var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return NotFound(new { message = "User not found." });
+
+            if (string.IsNullOrWhiteSpace(request.Content))
+                return BadRequest(new { message = "Content cannot be empty." });
 
             var video = await _dbContext.Videos.FindAsync(request.VideoId);
             if (video == null)
@@ -94,9 +94,9 @@ namespace VideoHost.Server.Controllers
             {
                 Content = request.Content,
                 CreationDate = DateTime.UtcNow,
-                UserId = request.UserId,
+                UserId = user.Id,
                 User = user,
-                VideoId = request.VideoId,
+                VideoId = video.Id,
                 Video = video
             };
 
@@ -110,6 +110,9 @@ namespace VideoHost.Server.Controllers
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] CommentUpdateRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.Content))
+                return BadRequest(new { message = "Content cannot be empty." });
+
             var comment = await _dbContext.Comments.FindAsync(request.Id);
 
             if (comment == null)
@@ -141,7 +144,6 @@ namespace VideoHost.Server.Controllers
     {
         public required string Content { get; set; }
         public required int VideoId { get; set; }
-        public required int UserId { get; set; }
     }
 
     public class CommentUpdateRequest

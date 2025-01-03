@@ -94,7 +94,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Adding static files so that videos can be accessed in the front-end of the app.
+// Creating upload folder and adding static files so that videos can be accessed in the front-end of the app.
+string uploadDir = Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "uploads"));
+Directory.CreateDirectory(uploadDir);
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "uploads")),

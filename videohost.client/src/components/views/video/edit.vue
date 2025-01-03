@@ -135,14 +135,12 @@
 
       toast.success(response.data.message);
 
-      if (selectedTags.value.length > 0) {
-        const tagFormData = {
-          videoId: video.value.id,
-          tagIds: selectedTags.value
-        }
-
-        await axios.post('/api/Tag/attach', tagFormData);
+      const tagFormData = {
+        videoId: video.value.id,
+        tagIds: selectedTags.value
       }
+
+      await axios.post('/api/Tag/attach', tagFormData);
 
       router.push({ name: 'Video', params: { id: video.value.id } });
     } catch (error) {

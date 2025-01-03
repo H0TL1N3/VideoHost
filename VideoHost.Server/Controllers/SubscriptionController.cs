@@ -34,7 +34,7 @@ namespace VideoHost.Server.Controllers
         [HttpPost("add")]
         public async Task<IActionResult> Add([FromBody] SubscriptionAddRequest request)
         {
-            var subscriber = await _userManager.FindByIdAsync(request.SubscriberId.ToString());
+            var subscriber = await _userManager.GetUserAsync(User);
             if (subscriber == null) 
                 return NotFound(new { message = "Subscriber is required." });
 
@@ -48,7 +48,7 @@ namespace VideoHost.Server.Controllers
                 Subscriber = subscriber,          
                 SubscribedToId = subscribedTo.Id,
                 SubscribedTo = subscribedTo,
-                SubscriptionDate = DateTime.Now
+                SubscriptionDate = DateTime.UtcNow
             };
 
             _dbContext.Subscriptions.Add(subscription);
@@ -59,10 +59,14 @@ namespace VideoHost.Server.Controllers
 
         [Authorize]
         [HttpDelete("delete")]
-        public async Task<IActionResult> Delete(int subscriberId, int subscribedToId)
+        public async Task<IActionResult> Delete(int subscribedToId)
         {
+            var subscriber = await _userManager.GetUserAsync(User);
+            if (subscriber == null)
+                return NotFound(new { message = "Subscriber is required." });
+
             var subscription = await _dbContext.Subscriptions
-                .FirstOrDefaultAsync(s => s.SubscriberId == subscriberId && s.SubscribedToId == subscribedToId);
+                .FirstOrDefaultAsync(s => s.SubscriberId == subscriber.Id && s.SubscribedToId == subscribedToId);
 
             if (subscription == null)
                 return NotFound(new { message = "Subscription does not exist." });
@@ -70,13 +74,12 @@ namespace VideoHost.Server.Controllers
             _dbContext.Subscriptions.Remove(subscription);
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new { message = "You have unsubscribed successfully!" });
+            return Ok(new { message = "You have unsubscribed successfully." });
         }
     }
 
     public class SubscriptionAddRequest
     {
-        public required int SubscriberId { get; set; }
         public required int SubscribedToId { get; set; }
     }
 }

@@ -36,7 +36,7 @@ namespace VideoHost.Server.Controllers
                         .FirstOrDefaultAsync(c => c.Id == id);
 
                     if (tag == null)
-                        return NotFound();
+                        return NotFound(new { message = "Entity does not exist." });
 
                     return Ok(new
                     {
@@ -53,7 +53,7 @@ namespace VideoHost.Server.Controllers
                     .FirstOrDefaultAsync(v => v.Id == id);
 
                     if (video == null)
-                        return NotFound();
+                        return NotFound(new { message = "Entity does not exist." });
 
                     return Ok(new
                     {
@@ -81,7 +81,7 @@ namespace VideoHost.Server.Controllers
                     .FirstOrDefaultAsync(c => c.Id == id);
 
                     if (comment == null)
-                        return NotFound();
+                        return NotFound(new { message = "Entity does not exist." });
 
                     return Ok(new
                     {
@@ -115,7 +115,7 @@ namespace VideoHost.Server.Controllers
                         .FirstOrDefaultAsync(u => u.Id == id);
 
                     if (user == null)
-                        return NotFound();
+                        return NotFound(new { message = "Entity does not exist." });
 
                     var userRoles = await _userManager.GetRolesAsync(user);
 
@@ -128,7 +128,6 @@ namespace VideoHost.Server.Controllers
                         user.Id,
                         user.DisplayName,
                         user.Email,
-                        user.RegistrationDate,
                         Role = userRoles.FirstOrDefault(),
                         Roles = allRoles
                     });
@@ -141,7 +140,7 @@ namespace VideoHost.Server.Controllers
                     .FirstOrDefaultAsync(s => s.Id == id);
 
                     if (subscription == null)
-                        return NotFound();
+                        return NotFound(new { message = "Entity does not exist." });
 
                     return Ok(new
                     {
@@ -286,9 +285,6 @@ namespace VideoHost.Server.Controllers
         [HttpPut("update-tag")]
         public async Task<IActionResult> UpdateTag([FromBody] AdminTagUpdateRequest request)
         {
-            if (request == null)
-                return BadRequest(new { message = "Your data is invalid." });
-
             var tag = await _dbContext.Tags.FirstOrDefaultAsync(t => t.Id == request.Id);
             if (tag == null)
                 return NotFound(new { message = "This tag does not exist." });
@@ -308,9 +304,6 @@ namespace VideoHost.Server.Controllers
         [HttpPut("update-video")]
         public async Task<IActionResult> UpdateVideo([FromBody] AdminVideoUpdateRequest request)
         {
-            if (request == null)
-                return BadRequest(new { message = "Your data is invalid." });
-
             var video = await _dbContext.Videos
                 .Include(v => v.VideoTags)
                 .FirstOrDefaultAsync(v => v.Id == request.Id);
@@ -324,16 +317,14 @@ namespace VideoHost.Server.Controllers
             // Update base info
             video.Name = request.Name;
             video.Description = request.Description;
-            video.UserId = request.UserId;
+            video.UserId = user.Id;
             video.User = user;
-            if (!String.IsNullOrWhiteSpace(request.Description))
-                video.Description = request.Description;
 
-            // Update video tags if provided     
+            // Update video tags
+            _dbContext.VideoTags.RemoveRange(video.VideoTags!);
+
             if (request.TagIds != null && request.TagIds.Any())
             {
-                _dbContext.VideoTags.RemoveRange(video.VideoTags!);
-
                 var tags = await _dbContext.Tags.Where(t => request.TagIds.Contains(t.Id)).ToListAsync();
 
                 foreach (var tag in tags)
@@ -357,9 +348,6 @@ namespace VideoHost.Server.Controllers
         [HttpPut("update-comment")]
         public async Task<IActionResult> UpdateComment([FromBody] AdminCommentUpdateRequest request)
         {
-            if (request == null)
-                return BadRequest(new { message = "Your data is invalid." });
-
             var comment = await _dbContext.Comments.FirstOrDefaultAsync(s => s.Id == request.Id);
             if (comment == null)
                 return NotFound(new { message = "Comment not found." });
@@ -373,10 +361,10 @@ namespace VideoHost.Server.Controllers
                 return NotFound(new { message = "User not found." });
 
             comment.Content = request.Content;
-            comment.User = user;
-            comment.UserId = user.Id;
-            comment.Video = video;
             comment.VideoId = video.Id;
+            comment.Video = video;
+            comment.UserId = user.Id;
+            comment.User = user;              
 
             _dbContext.Comments.Update(comment);
             await _dbContext.SaveChangesAsync();
@@ -387,29 +375,24 @@ namespace VideoHost.Server.Controllers
         [HttpPut("update-user")]
         public async Task<IActionResult> UpdateUser([FromBody] AdminUserUpdateRequest request)
         {
-            if (request == null)
-                return BadRequest(new { message = "Your data is invalid." });
-
             var user = await _userManager.FindByIdAsync(request.Id.ToString());
             if (user == null)
                 return NotFound(new { message = "User not found." });
 
-            // Update displayName if provided
-            if (!string.IsNullOrWhiteSpace(request.DisplayName))
-            {
+            // Update displayName if provided and if differs
+            if (!string.IsNullOrWhiteSpace(request.DisplayName) && request.DisplayName != user.DisplayName)
                 user.DisplayName = request.DisplayName;
-            }
 
-            // Update email and username if provided
-            if (!string.IsNullOrWhiteSpace(request.Email))
+            // Update email and username if provided and if differs
+            if (!string.IsNullOrWhiteSpace(request.Email) && request.Email != user.Email)
             {
-                var emailResult = await _userManager.SetEmailAsync(user, request.Email);
-                if (!emailResult.Succeeded)
-                    return BadRequest(new { message = "Failed to update email.", errors = emailResult.Errors });
-
                 var usernameResult = await _userManager.SetUserNameAsync(user, request.Email);
                 if (!usernameResult.Succeeded)
                     return BadRequest(new { message = "Failed to update username.", errors = usernameResult.Errors });
+
+                var emailResult = await _userManager.SetEmailAsync(user, request.Email);
+                if (!emailResult.Succeeded)
+                    return BadRequest(new { message = "Failed to update email.", errors = emailResult.Errors });               
             }
 
             // Update password if provided
@@ -424,10 +407,9 @@ namespace VideoHost.Server.Controllers
             // Update role if the new one differs from the old one
             var currentRoles = await _userManager.GetRolesAsync(user);
 
-            if (!currentRoles.Contains(request.Role))
+            if (!!string.IsNullOrWhiteSpace(request.Role) && currentRoles.Contains(request.Role))
             {
                 var roleToRemove = currentRoles.FirstOrDefault(r => r != request.Role);
-
                 if (roleToRemove != null)
                 {
                     var removeResult = await _userManager.RemoveFromRoleAsync(user, roleToRemove);
@@ -435,12 +417,9 @@ namespace VideoHost.Server.Controllers
                         return BadRequest(new { message = "Failed to remove role.", errors = removeResult.Errors });
                 }
 
-                if (request.Role != null)
-                {
-                    var addResult = await _userManager.AddToRoleAsync(user, request.Role);
-                    if (!addResult.Succeeded)
-                        return BadRequest(new { message = "Failed to add roles.", errors = addResult.Errors });
-                }
+                var addResult = await _userManager.AddToRoleAsync(user, request.Role);
+                if (!addResult.Succeeded)
+                    return BadRequest(new { message = "Failed to add role.", errors = addResult.Errors });
             }      
 
             await _userManager.UpdateAsync(user);
@@ -451,9 +430,6 @@ namespace VideoHost.Server.Controllers
         [HttpPut("update-subscription")]
         public async Task<IActionResult> UpdateSubscription([FromBody] AdminSubscriptionUpdateRequest request)
         {
-            if (request == null)
-                return BadRequest(new { message = "Your data is invalid." });
-
             var subscription = await _dbContext.Subscriptions.FirstOrDefaultAsync(s => s.Id == request.Id);
             if (subscription == null)
                 return NotFound(new { message = "Subscription not found." });
@@ -531,11 +507,13 @@ namespace VideoHost.Server.Controllers
                         .Where(v => v.UserId == id)
                         .ToListAsync();
 
-                    foreach (Video videoFile in videos)
-                        DeleteVideoFile(videoFile);
-
                     if (videos.Count > 0)
+                    {
+                        foreach (Video videoFile in videos)
+                            DeleteVideoFile(videoFile);
+
                         _dbContext.Videos.RemoveRange(videos);
+                    }                    
 
                     // Delete related subscriptions
                     var subscriptions = await _dbContext.Subscriptions

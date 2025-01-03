@@ -150,9 +150,7 @@ namespace VideoHost.Server.Controllers
                 string videoFileName = $"{Path.GetRandomFileName()}.mp4";
                 string videoPath = Path.Combine(uploadDir, videoFileName);
                 using (var stream = new FileStream(videoPath, FileMode.Create))
-                {
                     await request.VideoFile.CopyToAsync(stream);
-                }
 
                 // Generate thumbnail using FFmpeg
                 string thumbnailFileName = Path.ChangeExtension(videoFileName, ".jpg");
@@ -187,7 +185,7 @@ namespace VideoHost.Server.Controllers
             }
         }
 
-        [HttpPost("increment")]
+        [HttpPut("increment")]
         public async Task<IActionResult> Increment([FromBody] VideoIncrementRequest request)
         {
             var video = await _dbContext.Videos.FirstOrDefaultAsync(v => v.Id == request.Id);
@@ -212,8 +210,7 @@ namespace VideoHost.Server.Controllers
                 return NotFound(new { message = "Video not found." });
 
             video.Name = request.Name;
-            if (!String.IsNullOrWhiteSpace(request.Description))
-                video.Description = request.Description;
+            video.Description = request.Description;
 
             await _dbContext.SaveChangesAsync();
 

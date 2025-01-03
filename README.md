@@ -30,3 +30,9 @@ This project was created using [Visual Studio 2022 Community Release](https://vi
 Simply launch the solution using the IDE and the project should build without any errors. 
 
 If you wish to test or debug the code, make sure to use Visual Studio's built-in breakpoints, loggers or other available debugging tools.
+
+## Accessing the app
+
+Once the app has been built, Swagger will open in your system's default browser. With it, the back-end will be up and running. Using Swagger, you will be able to test methods in the controllers directly.
+
+If the Vite server configs weren't changed by you, the application will be available by opening [https://localhost:5173/](https://localhost:5173/).

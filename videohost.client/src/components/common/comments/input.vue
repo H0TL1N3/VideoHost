@@ -64,8 +64,7 @@
 
     const formData = {
       content: content.value,
-      videoId: props.videoId,
-      userId: userStore.user.id,
+      videoId: props.videoId
     };
 
     try {

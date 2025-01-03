@@ -146,7 +146,6 @@
 
   const subscribe = async () => {
     const formData = {
-      subscriberId: userStore.user.id,
       subscribedToId: user.value.id
     }
 
@@ -168,7 +167,6 @@
       try {
         const response = await axios.delete('/api/Subscription/delete', {
           params: {
-            subscriberId: userStore.user.id,
             subscribedToId: user.value.id
           }
         });

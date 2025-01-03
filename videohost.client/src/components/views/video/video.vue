@@ -3,9 +3,11 @@
     <div v-if="loading" class="mt-auto mb-auto">Loading...</div>
     <div v-else class="w-75">
       <h1>{{ video.name }}</h1>
+
       <div class="d-flex justify-content-center mb-4">
-        <video controls :src="videoPath" class="object-fit-contain mt-3" @play="incrementViewCount"></video>
+        <video controls :src="videoPath" class="mt-3 w-100" @play="incrementViewCount"></video>
       </div>
+
       <div class="card container p-3 mb-3">
 
         <div class="row">
@@ -125,7 +127,7 @@
       return;
 
     try {
-      await axios.post('/api/Video/increment', {id: video.value.id});
+      await axios.put('/api/Video/increment', { id: video.value.id });
 
       video.value.viewCount += 1;
       alreadyViewed.value = true;

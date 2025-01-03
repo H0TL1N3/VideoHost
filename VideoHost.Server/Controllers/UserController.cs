@@ -90,11 +90,8 @@ namespace VideoHost.Server.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] UserRegisterRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var user = new User
             {
                 DisplayName = request.Username,
@@ -115,11 +112,8 @@ namespace VideoHost.Server.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new { message = "Your request data is invalid.", errors = ModelState });
-
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
                 return NotFound(new { message = "This user does not exist." });
@@ -185,13 +179,13 @@ namespace VideoHost.Server.Controllers
             // Update email and username if provided
             if (!string.IsNullOrWhiteSpace(request.NewEmail))
             {
-                var emailResult = await _userManager.SetEmailAsync(user, request.NewEmail);
-                if (!emailResult.Succeeded)
-                    return BadRequest(new { message = "Failed to update email.", errors = emailResult.Errors });
-
                 var usernameResult = await _userManager.SetUserNameAsync(user, request.NewEmail);
                 if (!usernameResult.Succeeded)
                     return BadRequest(new { message = "Failed to update username.", errors = usernameResult.Errors });
+
+                var emailResult = await _userManager.SetEmailAsync(user, request.NewEmail);
+                if (!emailResult.Succeeded)
+                    return BadRequest(new { message = "Failed to update email.", errors = emailResult.Errors });
             }
 
             // Update password if provided
@@ -279,6 +273,19 @@ namespace VideoHost.Server.Controllers
         }
     }
 
+    public class UserLoginRequest
+    {
+        public required string Email { get; set; }
+        public required string Password { get; set; }
+    }
+
+    public class UserRegisterRequest
+    {
+        public required string Username { get; set; }
+        public required string Email { get; set; }
+        public required string Password { get; set; }
+    }
+
     public class UserUpdateRequest
     {
         public required string UserName { get; set; }
@@ -289,18 +296,5 @@ namespace VideoHost.Server.Controllers
         public required string OldPassword { get; set; }
         public string? NewEmail { get; set; }
         public string? NewPassword { get; set; }
-    }
-
-public class LoginRequest
-    {
-        public required string Email { get; set; }
-        public required string Password { get; set; }
-    }
-
-    public class RegisterRequest
-    {
-        public required string Username { get; set; }
-        public required string Email { get; set; }
-        public required string Password { get; set; }
     }
 }

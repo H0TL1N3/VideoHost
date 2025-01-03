@@ -7,7 +7,7 @@
 
   <footer class="py-3 fixed-bottom bg-light">
     <div class="container-fluid">
-      <p class="text-muted">&copy; VideoHost Qualification Project - 2024, ik22076</p>
+      <p class="text-muted">&copy; VideoHost Qualification Project - 2025, ik22076</p>
     </div>
   </footer>
 </template>

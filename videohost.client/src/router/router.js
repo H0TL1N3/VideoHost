@@ -17,6 +17,12 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
+  // Redirect to the forbidden page if already authenticated
+  if (to.meta.authPage && userStore.isAuthenticated) {
+    next({ name: '403 Forbidden' });
+    return;
+  }
+
   // Don't let regular users access the admin apges
   if (to.meta.requiresAdmin && userStore.isAuthenticated && userStore.user.role != 'Admin') {
     next({ name: '403 Forbidden' });

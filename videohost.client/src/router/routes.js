@@ -5,8 +5,8 @@ const routes = [
   { path: '/search', name: 'Search', component: () => import('@/components/views/search.vue'), meta: { showInMenu: true } },
   { path: '/tags', name: 'Tags', component: () => import('@/components/views/tags.vue'), meta: { showInMenu: true } },
   // User routes
-  { path: '/login', name: 'Login', component: () => import('@/components/views/profile/login.vue'), meta: { showInMenu: false } },
-  { path: '/register', name: 'Register', component: () => import('@/components/views/profile/register.vue'), meta: { showInMenu: false } },
+  { path: '/login', name: 'Login', component: () => import('@/components/views/profile/login.vue'), meta: { showInMenu: false, authPage: true } },
+  { path: '/register', name: 'Register', component: () => import('@/components/views/profile/register.vue'), meta: { showInMenu: false, authPage: true } },
   { path: '/dashboard', name: 'Dashboard', component: () => import('@/components/views/profile/dashboard.vue'), meta: { showInMenu: true, requiresAuth: true } },
   { path: '/user/:id', name: 'Profile', component: () => import('@/components/views/profile/profile.vue'), meta: { showInMenu: false } },
   { path: '/edit-user/:id', name: 'Edit User', component: () => import('@/components/views/profile/edit.vue'), meta: { showInMenu: false, requiresAuth: true } },

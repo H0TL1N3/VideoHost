@@ -22,6 +22,6 @@
 
         public ICollection<VideoTag>? VideoTags { get; set; }
 
-        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public ICollection<Comment>? Comments { get; set; }
     }
 }
