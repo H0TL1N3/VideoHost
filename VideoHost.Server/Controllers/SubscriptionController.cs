@@ -10,6 +10,7 @@ namespace VideoHost.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SubscriptionController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
@@ -22,15 +23,35 @@ namespace VideoHost.Server.Controllers
         }
 
         [HttpGet("get")]
-        public async Task<IActionResult> Get(int subscriberId, int subscribedToId)
+        public async Task<IActionResult> Get(int subscribedToId)
         {
-            var subscription = await _dbContext.Subscriptions
-                .FirstOrDefaultAsync(s => s.SubscriberId == subscriberId && s.SubscribedToId == subscribedToId);
+            var subscriber = await _userManager.GetUserAsync(User);
+            if (subscriber == null)
+                return NotFound(new { message = "Subscriber is required." });
 
-            return Ok(subscription);
+            var subscription = await _dbContext.Subscriptions
+                .Include(s => s.SubscribedTo)
+                .FirstOrDefaultAsync(s => s.SubscriberId == subscriber.Id && s.SubscribedToId == subscribedToId);
+
+            if (subscription == null)
+                return Ok();
+
+            return Ok(new
+            {
+                subscription!.Id,
+                Subscriber = new {
+                    subscription.Subscriber.Id,
+                    subscription.Subscriber.DisplayName
+                },
+                SubscribedTo = new
+                {
+                    subscription.SubscribedTo.Id,
+                    subscription.SubscribedTo.DisplayName
+                },
+                subscription.SubscriptionDate
+            });
         }
 
-        [Authorize]
         [HttpPost("add")]
         public async Task<IActionResult> Add([FromBody] SubscriptionAddRequest request)
         {
@@ -56,8 +77,7 @@ namespace VideoHost.Server.Controllers
 
             return Ok(new { message = "You have subscribed successfully!" });
         }
-
-        [Authorize]
+        
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete(int subscribedToId)
         {

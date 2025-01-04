@@ -97,15 +97,12 @@
 
       user.value = response.data;
 
-      if (!userStore.isAuthenticated)
-        return;
+      if (!userStore.isAuthenticated) return;
 
-      if (userStore.user.id === user.value.id)
-        return;
+      if (userStore.user.id === user.value.id) return;
 
       const subscription = await axios.get('/api/Subscription/get', {
         params: {
-          subscriberId: userStore.user.id,
           subscribedToId: user.value.id
         }
       });
