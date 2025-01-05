@@ -407,7 +407,7 @@ namespace VideoHost.Server.Controllers
             // Update role if the new one differs from the old one
             var currentRoles = await _userManager.GetRolesAsync(user);
 
-            if (!!string.IsNullOrWhiteSpace(request.Role) && currentRoles.Contains(request.Role))
+            if (!string.IsNullOrWhiteSpace(request.Role) && !currentRoles.Contains(request.Role))
             {
                 var roleToRemove = currentRoles.FirstOrDefault(r => r != request.Role);
                 if (roleToRemove != null)
