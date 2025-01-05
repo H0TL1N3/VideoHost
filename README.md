@@ -1,6 +1,6 @@
 # VideoHost
 
-This project is made as a Qualification Project by Iļja Krasavins, student number ik22076.
+This project is made as a Qualification Work by Iļja Krasavins, student number ik22076.
 
 The following paragraphs are instructions of what to do before you launch the project.
 
